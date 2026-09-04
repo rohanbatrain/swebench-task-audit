@@ -1,4 +1,4 @@
-.PHONY: demo test audit lint clean
+.PHONY: demo test audit gates lint clean
 
 PY := ./.venv/bin/python
 
@@ -18,6 +18,12 @@ test: ## Run the test suite.
 
 audit: ## Recompute corpus-wide signals for the Verified split.
 	@$(PY) -m swebench_patch_audit.corpus --instances data/swebench_verified.jsonl
+
+gates: ## Run exactly what CI runs, in the same order.
+	@uv run ruff check . --output-format=concise
+	@uv run ruff format --check .
+	@uv run mypy
+	@uv run pytest
 
 clean:
 	@rm -rf .pytest_cache **/__pycache__

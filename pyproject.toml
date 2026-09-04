@@ -37,6 +37,10 @@ addopts = "-q"
 line-length = 100
 target-version = "py311"
 src = ["src", "tests", "scripts"]
+# ruff formats Python inside fenced markdown blocks. The blocks under docs/ quote code
+# exactly as it was written at the time, including its mistakes - reformatting a
+# quotation makes it a paraphrase.
+extend-exclude = ["docs/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "RET", "PTH", "RUF"]

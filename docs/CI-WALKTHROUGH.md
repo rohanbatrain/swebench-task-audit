@@ -267,6 +267,31 @@ args.dataset = args.dataset.resolve()
 **The lesson:** resolve paths to absolute at the boundary. Any function that later runs a
 subprocess with a different `cwd` is a trap for relative paths.
 
+### 4 · I verified with the wrong command
+
+The commit that added *this document* failed CI. `ruff format` also formats Python inside
+fenced markdown code blocks, and three blocks here use single quotes where ruff wants
+double.
+
+The real error was in how I checked before pushing:
+
+```
+ruff check . -q          # what I ran   - lint only
+ruff format --check .    # what CI runs - formatting too
+```
+
+I ran the first, saw "clean", and concluded the second would pass. Two different questions;
+I answered the easy one and reported the answer to the hard one.
+
+`docs/` is now excluded from ruff, on the grounds that these blocks quote code as it was
+actually written — reformatting a quotation makes it a paraphrase. But the exclusion is
+the smaller half of the fix. The larger half is running the same command CI runs, which is
+what `make gates` now does.
+
+**The lesson, for the fourth time on this page:** verifying something adjacent to what you
+care about, and reporting the result as though you had verified the thing itself, is the
+defect. It does not stop being the defect when you are the one doing it.
+
 ---
 
 ## Reading a failed run without opening a browser
