@@ -81,7 +81,7 @@ jobs:
         run: |
           uv venv
           uv pip install -e ".[corpus]"
-      - run: python scripts/fetch_dataset.py --out "$DATASET"
+      - run: uv run python scripts/fetch_dataset.py --out "$DATASET"
 
       - name: Verify the grader on ${{ env.INSTANCE }}
         id: verify
@@ -128,7 +128,7 @@ jobs:
         run: |
           uv venv
           uv pip install -e ".[corpus]"
-      - run: python scripts/fetch_dataset.py --out "$DATASET"
+      - run: uv run python scripts/fetch_dataset.py --out "$DATASET"
 
       - name: Defeat the grader, then catch it
         run: |
