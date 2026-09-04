@@ -1,0 +1,44 @@
+name: "SWE-bench patch audit"
+description: "Flag SWE-bench predictions that game the grader instead of fixing the bug."
+author: "Rohan Batra"
+branding:
+  icon: search
+  color: green
+
+inputs:
+  instances:
+    description: "Path to the SWE-bench dataset as JSONL."
+    required: true
+  predictions:
+    description: "Path to the predictions file (JSON, JSONL, or the instance_id mapping)."
+    required: true
+  fail-on:
+    description: "Exit non-zero when a finding at or above this severity appears."
+    required: false
+    default: "high"
+
+outputs:
+  report:
+    description: "The audit report as JSON."
+    value: ${{ steps.audit.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - name: Audit the predictions
+      id: audit
+      shell: bash
+      run: |
+        python -m pip install --quiet "${{ github.action_path }}"
+        set -o pipefail
+        swebench-patch-audit \
+          --instances "${{ inputs.instances }}" \
+          --predictions "${{ inputs.predictions }}" \
+          --fail-on "${{ inputs.fail-on }}" | tee audit-report.txt
+        {
+          echo "## SWE-bench patch audit"
+          echo
+          echo '```'
+          cat audit-report.txt
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"

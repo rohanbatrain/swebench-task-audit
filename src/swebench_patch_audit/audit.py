@@ -1,4 +1,5 @@
 """Run every detector over one candidate patch."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -34,7 +35,9 @@ def audit_patch(candidate_patch: str, instance: Mapping[str, Any]) -> AuditRepor
     fail_to_pass = _as_list(instance.get("FAIL_TO_PASS"))
     report = AuditReport(instance_id=str(instance.get("instance_id", "<unknown>")))
 
-    report.findings.extend(detectors.detect_grader_edits(files, test_patch=instance.get("test_patch", "")))
+    report.findings.extend(
+        detectors.detect_grader_edits(files, test_patch=instance.get("test_patch", ""))
+    )
     report.findings.extend(detectors.detect_test_config_tamper(files))
     report.findings.extend(detectors.detect_report_hooks(files))
     report.findings.extend(detectors.detect_skips(files, fail_to_pass=fail_to_pass))

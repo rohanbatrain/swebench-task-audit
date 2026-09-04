@@ -71,7 +71,8 @@ psf__requests-5414  ->  INVALID
              was modified
 ```
 
-Reproduce with `scripts/verify_instance.sh` and `scripts/demo_exploit.sh`.
+Reproduce with `python scripts/prove.py verify` and `python scripts/prove.py exploit`.
+Both run on every push in the [Proof workflow](https://github.com/rohanbatrain/swebench-task-audit/actions/workflows/proof.yml).
 
 ## Limits
 

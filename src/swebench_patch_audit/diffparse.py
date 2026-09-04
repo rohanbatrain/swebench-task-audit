@@ -3,6 +3,7 @@
 Deliberately dependency-free and tolerant: a candidate patch produced by a model is
 often slightly malformed, and an auditor still needs to see what it touched.
 """
+
 from __future__ import annotations
 
 import re

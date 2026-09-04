@@ -3,10 +3,13 @@
 **An audit of SWE-bench Verified, and a linter for patches that satisfy the grader without
 fixing the bug.**
 
-![tests](https://img.shields.io/badge/tests-27-brightgreen)
-![python](https://img.shields.io/badge/python-3.11%2B-blue)
+[![CI](https://github.com/rohanbatrain/swebench-task-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/rohanbatrain/swebench-task-audit/actions/workflows/ci.yml)
+[![Proof](https://github.com/rohanbatrain/swebench-task-audit/actions/workflows/proof.yml/badge.svg)](https://github.com/rohanbatrain/swebench-task-audit/actions/workflows/proof.yml)
+![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 ![deps](https://img.shields.io/badge/runtime%20deps-none-lightgrey)
 ![licence](https://img.shields.io/badge/licence-MIT-green)
+
+> **Every claim below is re-derived on a clean runner by the [Proof workflow](https://github.com/rohanbatrain/swebench-task-audit/actions/workflows/proof.yml)** — the corpus audit over all 500 instances, the harness verification including its negative control, and the exploit that defeats the grader. `scripts/prove.py` asserts each expected outcome and exits non-zero when reality differs, so a green check means the demonstration reproduced rather than merely ran. It re-runs weekly, because reproducibility is not a property you establish once.
 
 A benchmark result is only as trustworthy as two things: the tasks it is built from, and
 the grader's immunity to being edited by the thing it grades. This repository takes both
@@ -35,6 +38,7 @@ patch can edit them. The canonical exploit is nine lines:
 ```python
 # conftest.py
 import pytest
+
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
@@ -98,7 +102,7 @@ The first provenance pass reported **zero** concerns. That was not a clean bill 
 It was this line:
 
 ```python
-f2p_files = {t.split("::")[0] for t in f2p if "::" in t}   # wrong
+f2p_files = {t.split("::")[0] for t in f2p if "::" in t}  # wrong
 ```
 
 SWE-bench Verified uses **three** test-ID formats, and only one names a file:

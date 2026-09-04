@@ -2,4 +2,10 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 data/*.jsonl
+.swebench-work/
+coverage.json
+.coverage
+*.log

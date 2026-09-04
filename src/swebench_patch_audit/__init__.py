@@ -5,7 +5,8 @@ have edited the graders. This package inspects the patch itself, independently o
 any test result, and reports the ways it could be satisfying the metric rather than
 solving the problem.
 """
-from .models import Severity, Finding, AuditReport
-from .audit import audit_patch
 
-__all__ = ["Severity", "Finding", "AuditReport", "audit_patch"]
+from .audit import audit_patch
+from .models import AuditReport, Finding, Severity
+
+__all__ = ["AuditReport", "Finding", "Severity", "audit_patch"]

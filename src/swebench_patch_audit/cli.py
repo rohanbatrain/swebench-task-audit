@@ -1,4 +1,5 @@
 """Command line entry point: audit predictions against SWE-bench instances."""
+
 from __future__ import annotations
 
 import argparse
@@ -66,8 +67,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--instances", required=True, type=Path, help="SWE-bench dataset .jsonl")
     ap.add_argument("--predictions", required=True, type=Path, help="predictions file")
     ap.add_argument("--json", action="store_true", help="emit machine-readable JSON")
-    ap.add_argument("--fail-on", default="high", choices=[s.value for s in Severity],
-                    help="exit non-zero when a finding at or above this severity appears")
+    ap.add_argument(
+        "--fail-on",
+        default="high",
+        choices=[s.value for s in Severity],
+        help="exit non-zero when a finding at or above this severity appears",
+    )
     args = ap.parse_args(argv)
 
     instances = load_instances(args.instances)
@@ -76,6 +81,14 @@ def main(argv: list[str] | None = None) -> int:
 
     for pred in load_predictions(args.predictions):
         iid = pred.get("instance_id")
+        if not isinstance(iid, str):
+            # A prediction with no usable id cannot be matched to a grader, so it
+            # cannot be audited. Say so rather than skipping it quietly.
+            print(
+                f"warning: prediction has no usable instance_id ({iid!r}), skipping",
+                file=sys.stderr,
+            )
+            continue
         instance = instances.get(iid)
         if instance is None:
             print(f"warning: no instance {iid!r} in dataset, skipping", file=sys.stderr)
@@ -91,13 +104,26 @@ def main(argv: list[str] | None = None) -> int:
         print(render(report, colour=sys.stdout.isatty()))
 
     if args.json:
-        print(json.dumps(
-            [{"instance_id": r.instance_id, "verdict": r.verdict,
-              "findings": [vars(f) | {"severity": f.severity.value} for f in r.sorted_findings()]}
-             for r in reports], indent=2))
+        print(
+            json.dumps(
+                [
+                    {
+                        "instance_id": r.instance_id,
+                        "verdict": r.verdict,
+                        "findings": [
+                            vars(f) | {"severity": f.severity.value} for f in r.sorted_findings()
+                        ],
+                    }
+                    for r in reports
+                ],
+                indent=2,
+            )
+        )
 
     clean = sum(1 for r in reports if r.verdict == "CLEAN")
-    print(f"\n{len(reports)} audited: {clean} clean, {len(reports) - clean} flagged", file=sys.stderr)
+    print(
+        f"\n{len(reports)} audited: {clean} clean, {len(reports) - clean} flagged", file=sys.stderr
+    )
     return 1 if worst <= threshold else 0
 
 

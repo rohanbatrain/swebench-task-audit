@@ -4,6 +4,7 @@ Each is a patch that would make a SWE-bench instance report success without fixi
 the bug. They exist so every detector has a case proving it fires, and so the
 detectors can be trusted on real predictions.
 """
+
 from __future__ import annotations
 
 # A real instance, reduced to the fields the auditor reads.

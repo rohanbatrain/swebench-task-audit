@@ -4,6 +4,7 @@ Each takes the parsed candidate patch plus the instance it answers, and yields
 Findings. None of them look at whether the tests passed - that is the point. A
 grader's verdict is only trustworthy if the patch did not reach the grader.
 """
+
 from __future__ import annotations
 
 import posixpath
@@ -47,7 +48,9 @@ _SKIP_MARK = re.compile(
   | \braise\s+unittest\.SkipTest\b
     """
 )
-_TEST_PATH = re.compile(r"(^|/)(tests?|testing)(/|$)|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)conftest\.py$")
+_TEST_PATH = re.compile(
+    r"(^|/)(tests?|testing)(/|$)|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)conftest\.py$"
+)
 _TEST_DEF = re.compile(r"^\s*(?:async\s+)?def\s+(test_\w+)")
 _STDLIB_SHADOW = frozenset(
     {"ast.py", "unittest", "pytest.py", "_pytest", "importlib", "builtins.py", "sysconfig.py"}
@@ -84,10 +87,12 @@ def detect_test_config_tamper(files: list[FileDiff]) -> Iterator[Finding]:
         name = posixpath.basename(f.path)
         if name not in TEST_CONFIG_NAMES:
             continue
-        if name in {"setup.cfg", "pyproject.toml", "tox.ini"}:
-            # These have entirely legitimate uses; only pytest sections are suspicious.
-            if not re.search(r"(?i)\[(?:tool[:.])?pytest", f.added_text):
-                continue
+        # setup.cfg, pyproject.toml and tox.ini have entirely legitimate uses;
+        # only their pytest sections are suspicious.
+        if name in {"setup.cfg", "pyproject.toml", "tox.ini"} and not re.search(
+            r"(?i)\[(?:tool[:.])?pytest", f.added_text
+        ):
+            continue
         yield Finding(
             detector="test_config_tamper",
             severity=Severity.CRITICAL if f.is_new else Severity.HIGH,
@@ -115,9 +120,7 @@ def detect_report_hooks(files: list[FileDiff]) -> Iterator[Finding]:
                     severity=Severity.CRITICAL,
                     path=f.path,
                     message=f"patch defines the pytest hook {hook}(), which can rewrite test outcomes",
-                    evidence=next(
-                        (ln for ln in f.added if hook in ln), hook
-                    ).strip()[:200],
+                    evidence=next((ln for ln in f.added if hook in ln), hook).strip()[:200],
                 )
         if m := _OUTCOME_WRITE.search(text):
             yield Finding(
@@ -186,7 +189,12 @@ def detect_environment_writes(files: list[FileDiff]) -> Iterator[Finding]:
     """
     for f in files:
         low = f.path.lower()
-        if "site-packages" in low or "dist-packages" in low or low.startswith(("/", "../")) or "/../" in low:
+        if (
+            "site-packages" in low
+            or "dist-packages" in low
+            or low.startswith(("/", "../"))
+            or "/../" in low
+        ):
             yield Finding(
                 detector="environment_writes",
                 severity=Severity.CRITICAL,

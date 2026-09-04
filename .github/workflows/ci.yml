@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege: nothing here writes to the repository.
+permissions:
+  contents: read
+
+# A superseded push should not keep burning a runner.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: lint · types · format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - run: uv pip install --system -e ".[dev]"
+
+      - name: ruff — lint
+        run: ruff check . --output-format=github
+
+      - name: ruff — format
+        run: ruff format --check .
+
+      - name: mypy
+        run: mypy
+
+  tests:
+    name: tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+
+      - run: uv pip install --system -e ".[dev]"
+
+      - name: pytest with coverage
+        run: |
+          pytest --cov --cov-report=term-missing --cov-report=json:coverage.json
+
+      - name: Report to job summary
+        if: always()
+        run: |
+          {
+            echo "## Tests — Python ${{ matrix.python }}"
+            echo
+            if [ -f coverage.json ]; then
+              pct=$(python -c "import json;print(f\"{json.load(open('coverage.json'))['totals']['percent_covered']:.1f}\")")
+              echo "Line coverage: **${pct}%**"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

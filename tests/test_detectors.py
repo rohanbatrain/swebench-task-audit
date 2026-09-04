@@ -1,10 +1,8 @@
 """Every detector must fire on its adversarial fixture and stay quiet on the honest fix."""
+
 from __future__ import annotations
 
 import pytest
-
-from swebench_patch_audit import audit_patch
-from swebench_patch_audit.models import Severity
 
 from fixtures import (
     CONFTEST_HOOK,
@@ -20,6 +18,8 @@ from fixtures import (
     TRIVIAL,
     WRITES_SITE_PACKAGES,
 )
+from swebench_patch_audit import audit_patch
+from swebench_patch_audit.models import Severity
 
 
 def detectors_fired(patch: str) -> set[str]:

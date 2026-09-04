@@ -4,6 +4,7 @@ Hand-auditing 500 instances is not feasible, and sampling blind wastes the budge
 healthy tasks. These signals are mechanical proxies for the five axes the audit cares
 about - they do not decide anything, they decide *where to look*.
 """
+
 from __future__ import annotations
 
 import json
@@ -15,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .diffparse import changed_paths, parse_patch
-from .testids import IdFormat, format_mix, resolve_all
+from .testids import format_mix, resolve_all
 
 # Assertions pinned to an exact rendered string are the classic over-rigid test: a
 # functionally correct patch that words the message differently still fails.
@@ -143,8 +144,7 @@ def signals_for(row: dict[str, Any]) -> InstanceSignals:
         f2p_files_outside_test_patch=len(outside),
         test_patch_churn=sum(f.churn for f in parse_patch(test_patch)),
         gold_patch_churn=sum(f.churn for f in gold_files),
-        gold_touches_tests_only=bool(gold_files)
-        and all("test" in f.path for f in gold_files),
+        gold_touches_tests_only=bool(gold_files) and all("test" in f.path for f in gold_files),
         brittle_assert_hits=len(_BRITTLE_ASSERT.findall(test_patch)),
         env_commit_differs=bool(row.get("environment_setup_commit"))
         and row.get("environment_setup_commit") != row.get("base_commit"),
@@ -177,12 +177,12 @@ def summarise(all_signals: Iterable[InstanceSignals]) -> dict[str, Any]:
         "pass_to_pass_max": max(s.n_pass_to_pass for s in sigs),
         "gold_churn_median": statistics.median(s.gold_patch_churn for s in sigs),
         "test_id_formats": {
-            fmt: sum(s.test_id_formats.get(fmt, 0) for s in sigs) for fmt in
-            ("pytest", "unittest", "freeform")
+            fmt: sum(s.test_id_formats.get(fmt, 0) for s in sigs)
+            for fmt in ("pytest", "unittest", "freeform")
         },
         "instances_using_each_format": {
-            fmt: sum(1 for s in sigs if s.test_id_formats.get(fmt, 0)) for fmt in
-            ("pytest", "unittest", "freeform")
+            fmt: sum(1 for s in sigs if s.test_id_formats.get(fmt, 0))
+            for fmt in ("pytest", "unittest", "freeform")
         },
         "env_commit_pinned_per_repo_version": {
             "instances_where_env_differs_from_base": sum(1 for s in sigs if s.env_commit_differs),
@@ -204,8 +204,10 @@ def main(argv: list[str] | None = None) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
         json.dumps(
-            {"summary": summary,
-             "instances": [asdict(s) | {"concerns": s.concerns()} for s in sigs]},
+            {
+                "summary": summary,
+                "instances": [asdict(s) | {"concerns": s.concerns()} for s in sigs],
+            },
             indent=2,
         ),
         encoding="utf-8",

@@ -1,4 +1,5 @@
 """Typed contracts. Defined once, shared by every detector."""
+
 from __future__ import annotations
 
 import enum

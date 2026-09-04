@@ -13,6 +13,7 @@ use the other two - and reports a clean result while having checked nothing. Thi
 module exists so that failure is impossible to make by accident: every ID resolves to
 a Resolution that states plainly whether a file was recovered.
 """
+
 from __future__ import annotations
 
 import enum
