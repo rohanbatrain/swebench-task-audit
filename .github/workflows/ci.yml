@@ -26,16 +26,21 @@ jobs:
           python-version: "3.11"
           enable-cache: true
 
-      - run: uv pip install --system -e ".[dev]"
+      # Not `--system`: setup-uv provides a uv-managed interpreter, and the runner's
+      # own Python is PEP 668 externally-managed. A project venv sidesteps both.
+      - name: Install
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
 
       - name: ruff — lint
-        run: ruff check . --output-format=github
+        run: uv run ruff check . --output-format=github
 
       - name: ruff — format
-        run: ruff format --check .
+        run: uv run ruff format --check .
 
       - name: mypy
-        run: mypy
+        run: uv run mypy
 
   tests:
     name: tests (py${{ matrix.python }})
@@ -51,11 +56,14 @@ jobs:
           python-version: ${{ matrix.python }}
           enable-cache: true
 
-      - run: uv pip install --system -e ".[dev]"
+      - name: Install
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
 
       - name: pytest with coverage
         run: |
-          pytest --cov --cov-report=term-missing --cov-report=json:coverage.json
+          uv run pytest --cov --cov-report=term-missing --cov-report=json:coverage.json
 
       - name: Report to job summary
         if: always()
@@ -64,7 +72,7 @@ jobs:
             echo "## Tests — Python ${{ matrix.python }}"
             echo
             if [ -f coverage.json ]; then
-              pct=$(python -c "import json;print(f\"{json.load(open('coverage.json'))['totals']['percent_covered']:.1f}\")")
+              pct=$(uv run python -c "import json;print(f\"{json.load(open('coverage.json'))['totals']['percent_covered']:.1f}\")")
               echo "Line coverage: **${pct}%**"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
